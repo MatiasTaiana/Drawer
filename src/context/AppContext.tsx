@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Expense, Todo, MonthSummary } from '../types';
+import { toast } from 'sonner';
 
 interface AppContextType {
   currentUtility: string;
@@ -17,7 +18,6 @@ interface AppContextType {
   setIsSidebarOpen: (open: boolean) => void;
   closeMonth: () => Promise<MonthSummary>;
   monthSummaries: MonthSummary[];
-  showToast: (message: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -49,7 +49,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('monthSummaries');
     return saved ? JSON.parse(saved) : [];
   });
-  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     localStorage.setItem('expenses', JSON.stringify(expenses));
@@ -67,10 +66,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('monthSummaries', JSON.stringify(monthSummaries));
   }, [monthSummaries]);
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
-  };
-
   const addExpense = (expense: Omit<Expense, 'id' | 'date'>) => {
     const newExpense: Expense = {
       ...expense,
@@ -78,11 +73,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date: new Date().toISOString(),
     };
     setExpenses((prev) => [...prev, newExpense]);
-    showToast('Expense added successfully');
+    toast.success('Expense added successfully');
   };
 
   const deleteExpense = (id: string) => {
     setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+    toast.success('Expense deleted successfully');
   };
 
   const addTodo = (todo: Omit<Todo, 'id' | 'date'>) => {
@@ -92,7 +88,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date: new Date().toISOString(),
     };
     setTodos((prev) => [...prev, newTodo]);
-    showToast('Task added successfully');
+    toast.success('Task added successfully');
   };
 
   const toggleTodo = (id: string) => {
@@ -101,50 +97,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
       )
     );
+    toast.success('Task status updated');
   };
 
   const deleteTodo = (id: string) => {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    toast.success('Task deleted successfully');
   };
 
-  const closeMonth = async (): Promise<MonthSummary> => {
-    const now = new Date();
-    const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM format
+  const closeMonth = async (selectedMonth?: string): Promise<MonthSummary> => {
+    const monthToClose = selectedMonth || new Date().toISOString().slice(0, 7);
     
-    // Calculate monthly totals
-    const currentMonthExpenses = expenses.filter(
-      expense => !expense.archived && expense.date.startsWith(currentMonth)
+    // Calculate monthly totals for the selected month
+    const monthExpenses = expenses.filter(
+      expense => expense.date.startsWith(monthToClose)
     );
     
-    const totalExpenses = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-    const necessaryExpenses = currentMonthExpenses
+    const totalExpenses = monthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const necessaryExpenses = monthExpenses
       .filter(expense => expense.isNecessary)
       .reduce((sum, expense) => sum + expense.amount, 0);
-    const unnecessaryExpenses = currentMonthExpenses
+    const unnecessaryExpenses = monthExpenses
       .filter(expense => !expense.isNecessary)
       .reduce((sum, expense) => sum + expense.amount, 0);
     
-    const totalInUSD = currentMonthExpenses.reduce((sum, expense) => 
+    const totalInUSD = monthExpenses.reduce((sum, expense) => 
       sum + (expense.amount / expense.dollarRate), 0);
 
     // Create monthly summary
     const summary: MonthSummary = {
       id: crypto.randomUUID(),
-      month: currentMonth,
+      month: monthToClose,
       totalIncome: monthlySalary,
       totalExpenses,
       netSavings: monthlySalary - totalExpenses,
       necessaryExpenses,
       unnecessaryExpenses,
       totalInUSD,
-      closedAt: now.toISOString(),
+      closedAt: new Date().toISOString(),
     };
 
-    // Clear current month's expenses
-    setExpenses(prev => prev.filter(expense => !expense.date.startsWith(currentMonth)));
+    // Remove the expenses for the closed month
+    setExpenses(prev => prev.filter(expense => !expense.date.startsWith(monthToClose)));
 
     // Save summary
     setMonthSummaries(prev => [...prev, summary]);
+    toast.success(`Month ${monthToClose} closed successfully`);
 
     return summary;
   };
@@ -167,15 +165,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsSidebarOpen,
         closeMonth,
         monthSummaries,
-        showToast,
       }}
     >
       {children}
-      {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg animate-fadeIn">
-          {toastMessage}
-        </div>
-      )}
     </AppContext.Provider>
   );
 };

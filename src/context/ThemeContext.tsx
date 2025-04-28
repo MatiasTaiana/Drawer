@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Theme = 'mati' | 'sofi';
 
@@ -18,7 +18,19 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('sofi');
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as Theme) || 'sofi';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    
+    // Apply theme to document body
+    document.body.className = theme === 'mati' 
+      ? 'bg-mati-50 text-mati-700'
+      : 'bg-purple-50 text-slate-800';
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme((current) => (current === 'mati' ? 'sofi' : 'mati'));

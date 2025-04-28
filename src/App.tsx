@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toaster } from 'sonner';
 import Sidebar from './components/Sidebar';
 import ExpenseTracker from './features/expenses/ExpenseTracker';
 import TodoTracker from './features/todos/TodoTracker';
@@ -50,6 +51,13 @@ function App() {
           <Sidebar />
           <MainContent />
         </div>
+        <Toaster 
+          position="bottom-right"
+          expand={false}
+          richColors
+          closeButton
+          duration={3000}
+        />
       </AppProvider>
     </ThemeProvider>
   );

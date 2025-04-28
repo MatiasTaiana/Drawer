@@ -77,6 +77,7 @@ const ExpenseForm: React.FC = () => {
     setIsNecessary(true);
     setDollarRate(apiRate ? apiRate.venta.toString() : '');
     setError('');
+    setRateWarning('');
   };
 
   return (

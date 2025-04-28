@@ -21,7 +21,7 @@ const Sidebar: React.FC = () => {
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       } ${
         theme === 'mati'
-          ? 'bg-zinc-900 text-white'
+          ? 'bg-mati-100 text-mati-700'
           : 'bg-purple-800 text-white'
       }`}
     >
@@ -30,7 +30,7 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center space-x-2">
           <ThemeToggle />
           <button 
-            className="md:hidden text-white hover:text-gray-300"
+            className="md:hidden text-mati-700 hover:text-mati-800"
             onClick={() => setIsSidebarOpen(false)}
           >
             <X size={24} />
@@ -51,10 +51,10 @@ const Sidebar: React.FC = () => {
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                     currentUtility === utility.id
                       ? theme === 'mati'
-                        ? 'bg-red-600 text-white'
+                        ? 'bg-accent-600 text-white'
                         : 'bg-purple-600 text-white'
                       : theme === 'mati'
-                        ? 'text-gray-300 hover:bg-zinc-800'
+                        ? 'text-mati-600 hover:bg-mati-200'
                         : 'text-purple-200 hover:bg-purple-700'
                   }`}
                 >
